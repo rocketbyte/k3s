@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-config
+  namespace: {{ .Values.traefik.namespace }}
+  labels:
+    app: traefik
+data:
+  traefik.toml: |
+    [global]
+      checkNewVersion = false
+      sendAnonymousUsage = false
+
+    [log]
+      level = "INFO"
+
+    [entryPoints]
+      [entryPoints.web]
+        address = ":80"
+        {{- if .Values.traefik.ssl.enabled }}
+        [entryPoints.web.http.redirections.entryPoint]
+          to = "websecure"
+          scheme = "https"
+        {{- end }}
+      
+      [entryPoints.websecure]
+        address = ":443"
+      
+      [entryPoints.metrics]
+        address = ":8082"
+
+    [api]
+      {{- if .Values.traefik.dashboard.enabled }}
+      dashboard = true
+      {{- if .Values.traefik.dashboard.secure }}
+      insecure = false
+      {{- else }}
+      insecure = true
+      {{- end }}
+      {{- else }}
+      dashboard = false
+      insecure = false
+      {{- end }}
+
+    [metrics]
+      [metrics.prometheus]
+        entryPoint = "metrics"
+
+    [providers]
+      [providers.kubernetesIngress]
+        ingressClass = "traefik"

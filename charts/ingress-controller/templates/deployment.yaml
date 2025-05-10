@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+{{- if ge .Values.traefik.replicas 2.0 }}
+kind: Deployment
+{{- else }}
+kind: Deployment
+{{- end }}
+metadata:
+  name: traefik-ingress-controller
+  namespace: {{ .Values.traefik.namespace }}
+  labels:
+    app: traefik
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  replicas: {{ .Values.traefik.replicas }}
+  selector:
+    matchLabels:
+      app: traefik
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: traefik
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+      {{- with .Values.traefik.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.traefik.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.traefik.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - name: traefik-config
+        configMap:
+          name: traefik-config
+      containers:
+      - name: traefik
+        image: traefik:{{ .Chart.AppVersion }}
+        args:
+        - --configfile=/config/traefik.toml
+        volumeMounts:
+        - name: traefik-config
+          mountPath: /config
+        ports:
+        - name: web
+          containerPort: 80
+        - name: websecure
+          containerPort: 443
+        - name: dashboard
+          containerPort: 8080
+        - name: metrics
+          containerPort: 8082
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        resources:
+          {{- toYaml .Values.traefik.resources | nindent 10 }}

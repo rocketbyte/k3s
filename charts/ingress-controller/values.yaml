@@ -1,0 +1,43 @@
+traefik:
+  enabled: true
+  namespace: rocket
+  replicas: 2
+  service:
+    type: LoadBalancer
+    port: 80
+    annotations: {}
+  ssl:
+    enabled: true
+    redirect: true
+  dashboard:
+    enabled: true
+    secure: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - traefik
+            topologyKey: kubernetes.io/hostname
+  # Enable autoscaling for the ingress controller
+  autoscaling: 
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    cpuTargetUtilization: 80
+    memoryTargetUtilization: 80
+  # Pod scheduling settings
+  tolerations: []
+  nodeSelector: {}
