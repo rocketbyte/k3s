@@ -1,0 +1,69 @@
+{{- if .Values.network.internal.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-mongodb-internal
+  labels:
+    app: {{ .Release.Name }}-mongodb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    service.kubernetes.io/topology-mode: auto
+  {{- if .Values.serviceAnnotations }}
+  annotations:
+    {{- toYaml .Values.serviceAnnotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.network.internal.type }}
+  ports:
+  - name: mongodb
+    port: {{ .Values.network.internal.port }}
+    targetPort: mongodb
+    protocol: TCP
+  selector:
+    app: {{ .Release.Name }}-mongodb
+    release: {{ .Release.Name }}
+{{- end }}
+
+{{- if .Values.network.external.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-mongodb-external
+  labels:
+    app: {{ .Release.Name }}-mongodb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  {{- if or .Values.serviceAnnotations .Values.network.external.annotations }}
+  annotations:
+    {{- if .Values.serviceAnnotations }}
+    {{- toYaml .Values.serviceAnnotations | nindent 4 }}
+    {{- end }}
+    {{- if .Values.network.external.annotations }}
+    {{- toYaml .Values.network.external.annotations | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  type: {{ .Values.network.external.type }}
+  {{- if eq .Values.network.external.type "LoadBalancer" }}
+  {{- if .Values.network.external.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml .Values.network.external.loadBalancerSourceRanges | nindent 4 }}
+  {{- end }}
+  externalTrafficPolicy: {{ .Values.network.external.externalTrafficPolicy }}
+  {{- end }}
+  ports:
+  - name: mongodb
+    port: {{ .Values.network.external.port }}
+    targetPort: mongodb
+    protocol: TCP
+    {{- if and (eq .Values.network.external.type "NodePort") .Values.network.external.nodePort }}
+    nodePort: {{ .Values.network.external.nodePort }}
+    {{- end }}
+  selector:
+    app: {{ .Release.Name }}-mongodb
+    release: {{ .Release.Name }}
+{{- end }}

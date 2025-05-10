@@ -1,0 +1,12 @@
+apiVersion: v2
+name: mongodb
+description: A Helm chart for MongoDB deployment with both private network and external access
+type: application
+version: 0.1.0
+appVersion: "6.0.10"
+keywords:
+  - mongodb
+  - database
+  - nosql
+maintainers:
+  - name: RocketByte Team

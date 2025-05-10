@@ -1,0 +1,119 @@
+## MongoDB Configuration
+##
+mongodb:
+  # -- Enable authentication
+  auth:
+    enabled: true
+    # -- Root password for MongoDB
+    rootPassword: ""
+    # -- Database name to create
+    database: "rocketdb"
+    # -- Username for the created database
+    username: "rocketuser"
+    # -- Password for the created user
+    password: ""
+
+## Deployment Configuration
+##
+deployment:
+  # -- Number of MongoDB replicas
+  replicas: 1
+  
+  # -- Resources for the MongoDB container
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  # -- Storage configuration
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+  
+  # -- Node selector for pod assignment
+  nodeSelector: {}
+  
+  # -- Tolerations for pod assignment
+  tolerations: []
+  
+  # -- Affinity for pod assignment
+  affinity: {}
+
+## Network Configuration
+##
+network:
+  # -- Internal service for VPC access only
+  internal:
+    enabled: true
+    port: 27017
+    type: ClusterIP
+  
+  # -- External service for Internet access
+  external:
+    enabled: true
+    port: 27017
+    # -- Service type for external access (LoadBalancer, NodePort)
+    type: LoadBalancer
+    # -- Node port if using NodePort service type
+    nodePort: ""
+    # -- Annotations for the external service
+    annotations: {}
+    # -- LoadBalancer source ranges if needed
+    loadBalancerSourceRanges: []
+    # -- Custom externalTrafficPolicy for the service
+    externalTrafficPolicy: Cluster
+
+## Security Configuration
+##
+security:
+  # -- Enable TLS for MongoDB connections
+  tls:
+    enabled: false
+    # -- Secret containing TLS certificates
+    secretName: ""
+  
+  # -- Pod security context
+  podSecurityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+  
+  # -- Container security context
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    allowPrivilegeEscalation: false
+
+## Additional Configuration
+##
+# -- Extra environment variables
+extraEnvVars: []
+
+# -- Configure liveness probe
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+# -- Configure readiness probe
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+  
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Service annotations
+serviceAnnotations: {}

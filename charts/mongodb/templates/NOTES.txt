@@ -1,0 +1,72 @@
+{{- $fullName := printf "%s-mongodb" .Release.Name }}
+{{- $internalServiceName := printf "%s-internal" $fullName }}
+{{- $externalServiceName := printf "%s-external" $fullName }}
+
+MongoDB is now being deployed! 
+
+1. Get the MongoDB root password:
+
+   {{- if .Values.mongodb.auth.rootPassword }}
+   Root Password: {{ .Values.mongodb.auth.rootPassword }}
+   {{- else }}
+   kubectl get secret --namespace {{ .Release.Namespace }} {{ $fullName }}-auth -o jsonpath="{.data.mongodb-root-password}" | base64 --decode
+   {{- end }}
+
+2. Get the MongoDB user password:
+
+   {{- if .Values.mongodb.auth.password }}
+   User Password: {{ .Values.mongodb.auth.password }}
+   {{- else }}
+   kubectl get secret --namespace {{ .Release.Namespace }} {{ $fullName }}-auth -o jsonpath="{.data.mongodb-password}" | base64 --decode
+   {{- end }}
+
+3. Connection details:
+
+   {{- if .Values.network.internal.enabled }}
+   ### Internal VPC Access:
+   
+   MongoDB can be accessed via port {{ .Values.network.internal.port }} on the following DNS name from within your cluster:
+   {{ $internalServiceName }}.{{ .Release.Namespace }}.svc.cluster.local
+
+   Example connection string for applications:
+   mongodb://{{ .Values.mongodb.auth.username }}:${PASSWORD}@{{ $internalServiceName }}:{{ .Values.network.internal.port }}/{{ .Values.mongodb.auth.database }}
+   
+   {{- end }}
+   
+   {{- if .Values.network.external.enabled }}
+   ### External Access:
+   
+   {{- if eq .Values.network.external.type "LoadBalancer" }}
+   To get the external IP address:
+   
+   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $externalServiceName }} --template "{{ "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}" }}")
+   echo "MongoDB external URL: mongodb://{{ .Values.mongodb.auth.username }}:${PASSWORD}@$SERVICE_IP:{{ .Values.network.external.port }}/{{ .Values.mongodb.auth.database }}"
+   
+   {{- else if eq .Values.network.external.type "NodePort" }}
+   To get the NodePort:
+   
+   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ $externalServiceName }})
+   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+   echo "MongoDB external URL: mongodb://{{ .Values.mongodb.auth.username }}:${PASSWORD}@$NODE_IP:$NODE_PORT/{{ .Values.mongodb.auth.database }}"
+   {{- end }}
+   {{- end }}
+
+4. Connect to MongoDB:
+
+   {{- if not .Values.network.external.enabled }}
+   # Run a MongoDB pod for direct access to the database:
+   kubectl run {{ $fullName }}-client --rm --tty -i --restart='Never' --namespace {{ .Release.Namespace }} --image mongo:{{ .Chart.AppVersion }} --command -- mongo admin --host {{ $internalServiceName }} --authenticationDatabase admin -u root -p $PASSWORD
+   {{- else }}
+   # For external access, use a MongoDB client of your choice pointing to the external service IP
+   {{- end }}
+
+5. Security recommendations:
+
+   - Change default passwords in production
+   - Enable TLS in production environments
+   {{- if eq .Values.network.external.type "LoadBalancer" }}
+   - Restrict LoadBalancer source ranges to trusted IPs
+   {{- end }}
+   - Consider using a VPN for external access instead of public internet
+
+For more information, see the MongoDB Helm chart README.

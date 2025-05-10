@@ -1,0 +1,26 @@
+{{- if .Values.deployment.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-mongodb
+  labels:
+    app: {{ .Release.Name }}-mongodb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  accessModes:
+    {{- range .Values.deployment.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.deployment.persistence.size | quote }}
+  {{- if .Values.deployment.persistence.storageClass }}
+  {{- if (eq "-" .Values.deployment.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ .Values.deployment.persistence.storageClass }}
+  {{- end }}
+  {{- end }}
+{{- end }}
