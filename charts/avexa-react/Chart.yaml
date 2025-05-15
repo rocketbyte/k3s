@@ -1,0 +1,13 @@
+apiVersion: v2
+name: avexa-react
+description: A Helm chart for deploying Avexa React application to Kubernetes
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - react
+  - frontend
+  - web
+  - avexa
+maintainers:
+  - name: RocketByte Team

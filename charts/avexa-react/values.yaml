@@ -1,0 +1,175 @@
+# Default values for avexa-react
+# This is a YAML-formatted file.
+
+## Application Configuration
+##
+app:
+  # -- Application name
+  name: avexa-react
+  
+  # -- Image configuration
+  image:
+    repository: registry.example.com/rocketbyte/avexa-react
+    tag: latest
+    pullPolicy: Always
+  
+  # -- Application port configuration (nginx)
+  port: 80
+
+## Deployment Configuration
+##
+deployment:
+  # -- Number of replicas
+  replicas: 2
+  
+  # -- Resource requests and limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  
+  # -- Pod scheduling preferences
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  # -- Deployment strategy settings
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+## Autoscaling Configuration
+##
+autoscaling:
+  # -- Enable autoscaling
+  enabled: false
+  # -- Minimum number of replicas
+  minReplicas: 2
+  # -- Maximum number of replicas
+  maxReplicas: 5
+  # -- Target CPU utilization percentage
+  targetCPUUtilizationPercentage: 80
+  # -- Target memory utilization percentage
+  targetMemoryUtilizationPercentage: 80
+
+## Network Configuration
+##
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- Service port
+  port: 80
+
+## Ingress Configuration
+##
+ingress:
+  # -- Enable ingress
+  enabled: true
+  # -- Ingress class name (traefik)
+  className: traefik
+  # -- Hostnames for the ingress
+  hosts:
+    - host: avexa.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # -- TLS configuration
+  tls:
+    - secretName: avexa-tls
+      hosts:
+        - avexa.example.com
+  # -- Ingress annotations
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+
+## Health Check Configuration
+##
+healthcheck:
+  # -- Liveness probe settings
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+    path: /
+  # -- Readiness probe settings
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+    path: /
+
+## Environment Variables
+##
+# -- Environment variables to pass to the container
+env: []
+# - name: NODE_ENV
+#   value: production
+
+# -- Secret environment variables to pass to the container
+secretEnv: []
+# - name: API_KEY
+#   secretName: avexa-secrets
+#   secretKey: api-key
+
+## Config Options
+##
+# -- Application configuration
+config: {}
+# nginx.conf: |
+#   server {
+#     listen 80;
+#     root /usr/share/nginx/html;
+#     index index.html index.htm;
+#     server_name _;
+#
+#     location / {
+#       try_files $uri $uri/ /index.html =404;
+#     }
+#   }
+
+## Labels and Annotations
+##
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Additional labels
+additionalLabels: {}
+
+# -- Service account configuration
+serviceAccount:
+  # -- Create a service account
+  create: false
+  # -- Service account name
+  name: ""
+  # -- Annotations for the service account
+  annotations: {}
+
+## Security Configuration
+##
+securityContext:
+  # -- Pod security context
+  pod:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  # -- Container security context
+  container:
+    runAsNonRoot: true
+    runAsUser: 1000
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
