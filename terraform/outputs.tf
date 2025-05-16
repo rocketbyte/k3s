@@ -16,7 +16,7 @@ output "ingress_controller_dashboard" {
 
 output "deployed_namespaces" {
   description = "List of deployed namespaces"
-  value       = var.deploy_namespaces ? var.namespaces : "No namespaces deployed"
+  value       = var.deploy_namespaces ? var.namespaces : []
 }
 
 output "cluster_info" {

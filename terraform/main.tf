@@ -25,7 +25,7 @@ terraform {
 
 # K3s Raspberry Pi cluster configuration
 provider "kubernetes" {
-  config_path    = var.kube_config_path
+  config_path    = fileexists(var.kube_config_path) ? var.kube_config_path : null
   config_context = var.kube_context
   
   # For accessing a remote k3s cluster
@@ -41,7 +41,7 @@ provider "kubernetes" {
 
 provider "helm" {
   kubernetes {
-    config_path    = var.kube_config_path
+    config_path    = fileexists(var.kube_config_path) ? var.kube_config_path : null
     config_context = var.kube_context
     
     # For accessing a remote k3s cluster

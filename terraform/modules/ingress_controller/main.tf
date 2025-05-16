@@ -20,7 +20,7 @@ locals {
 
 resource "helm_release" "ingress_controller" {
   name       = "ingress-controller"
-  chart      = "${path.module}/../../../charts/ingress-controller"
+  chart      = "${path.root}/../charts/ingress-controller"
   namespace  = var.namespace
   
   values = [
