@@ -28,10 +28,14 @@ data:
       
       [entryPoints.metrics]
         address = ":8082"
+        
+      [entryPoints.dashboard]
+        address = ":8080"
 
     [api]
       {{- if .Values.traefik.dashboard.enabled }}
       dashboard = true
+      entryPoint = "dashboard"
       {{- if .Values.traefik.dashboard.secure }}
       insecure = false
       {{- else }}

@@ -31,13 +31,11 @@ traefik:
                   values:
                     - traefik
             topologyKey: kubernetes.io/hostname
-  # Enable autoscaling for the ingress controller
   autoscaling: 
     enabled: true
     minReplicas: 1
     maxReplicas: 3
     cpuTargetUtilization: 80
     memoryTargetUtilization: 80
-  # Pod scheduling settings
   tolerations: []
   nodeSelector: {}

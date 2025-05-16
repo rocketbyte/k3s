@@ -1,0 +1,99 @@
+app:
+  name: avexa-react
+  image:
+    repository: registry.example.com/rocketbyte/avexa-react
+    tag: latest
+    pullPolicy: Always
+  port: 80
+
+deployment:
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: avexa.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: avexa-tls
+      hosts:
+        - avexa.example.com
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+
+healthcheck:
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+    path: /
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+    path: /
+
+env:
+  - name: MONGODB_HOST
+    value: "mongodb.rocket.svc.cluster.local"
+  - name: MONGODB_PORT
+    value: "27017"
+  - name: MONGODB_DATABASE
+    value: "rocketdb"
+  - name: MONGODB_USERNAME
+    value: "rocketuser"
+
+secretEnv:
+  - name: MONGODB_PASSWORD
+    secretName: mongodb
+    secretKey: mongodb-password
+
+securityContext:
+  pod:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  container:
+    runAsNonRoot: true
+    runAsUser: 1000
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL

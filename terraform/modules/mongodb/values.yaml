@@ -1,0 +1,63 @@
+mongodb:
+  auth:
+    enabled: true
+    rootPassword: "${random_password.mongodb_root.result}"
+    database: "rocketdb"
+    username: "rocketuser"
+    password: "${random_password.mongodb_user.result}"
+
+deployment:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+network:
+  internal:
+    enabled: true
+    port: 27017
+    type: ClusterIP
+  external:
+    enabled: false
+    port: 27017
+    type: ClusterIP
+
+security:
+  tls:
+    enabled: false
+  podSecurityContext:
+    fsGroup: 1001
+    runAsUser: 1001
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    allowPrivilegeEscalation: false
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
