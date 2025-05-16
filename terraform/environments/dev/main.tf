@@ -9,34 +9,46 @@ module "k3s_infra" {
   # Deployment configuration for dev environment
   namespaces       = ["rocket", "monitoring"]
   
-  # MongoDB configuration
-  mongodb_namespace     = "rocket"
-  mongodb_storage_size  = "2Gi"  # Larger for dev testing
-  mongodb_enable_auth   = true
-  mongodb_replicas      = 1      # Single instance for dev
-  mongodb_resource_limits = {
-    cpu    = "300m"
-    memory = "400Mi"
-  }
+  # Disable MongoDB as it's not compatible with ARMv8 on Raspberry Pi
+  deploy_mongodb   = false
   
-  # Ingress controller configuration
-  ingress_namespace       = "rocket"
-  ingress_replicas        = 1     # Single instance for dev
+  # Ingress controller configuration for Raspberry Pi
+  ingress_namespace        = "rocket"
+  ingress_replicas         = 1           # Single instance is enough for Raspberry Pi
+  ingress_service_type     = "LoadBalancer"
+  ingress_service_annotations = {
+    "metallb.universe.tf/allow-shared-ip" = "true"
+  }
   ingress_enable_dashboard = true
-  ingress_ssl_enabled     = false # No SSL for dev
+  ingress_dashboard_secure = false       # Allow easy access to dashboard during development
+  ingress_ssl_enabled      = true        # Enable SSL for security
+  ingress_ssl_redirect     = true
+  ingress_ssl_email        = "admin@example.com"  # Change to your email
+  
+  # Resource tuning for Raspberry Pi
+  ingress_resource_requests = {
+    cpu    = "50m"
+    memory = "100Mi"
+  }
   ingress_resource_limits = {
     cpu    = "200m"
     memory = "256Mi"
   }
   
-  # Avexa React configuration
-  avexa_namespace        = "rocket"
-  avexa_replicas         = 1      # Single instance for dev
-  avexa_image_repository = "rocketbyte/avexa-react"
-  avexa_image_tag        = "dev"  # Use dev tag
-  avexa_ingress_host     = "app.rocket.local"
-  avexa_resource_limits  = {
-    cpu    = "200m"
-    memory = "256Mi"
+  # Disable autoscaling for Raspberry Pi to conserve resources
+  ingress_enable_autoscaling = false
+  ingress_min_replicas       = 1
+  ingress_max_replicas       = 2
+  
+  # Disable persistence initially to get basic functionality working
+  ingress_enable_persistence = false
+  ingress_persistence_size   = "128Mi"
+  
+  # Optimization for Raspberry Pi (ARM architecture)
+  ingress_node_selector = {
+    "kubernetes.io/arch" = "arm64"  # For Raspberry Pi 4
   }
+  
+  # Disable Avexa React as it depends on MongoDB
+  deploy_avexa_react = false
 }

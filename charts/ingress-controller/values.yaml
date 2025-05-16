@@ -1,24 +1,38 @@
 traefik:
   enabled: true
   namespace: rocket
-  replicas: 2
+  replicas: 1  # Default to 1 for Raspberry Pi
+  
+  # Service configuration
   service:
-    type: LoadBalancer
+    type: LoadBalancer  # Use LoadBalancer for external access
     port: 80
-    annotations: {}
+    annotations: 
+      # Add annotations if needed for your specific environment
+      metallb.universe.tf/allow-shared-ip: "true"
+  
+  # SSL configuration
   ssl:
     enabled: true
     redirect: true
+    email: "admin@example.com"  # Replace with actual email for Let's Encrypt
+  
+  # Dashboard configuration
   dashboard:
     enabled: true
-    secure: true
+    secure: false  # Set to false to allow direct access for troubleshooting
+    # For production, set to true and create proper ingress
+  
+  # Resource limits - optimized for Raspberry Pi
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 50m
+      memory: 100Mi
     limits:
-      cpu: 300m
+      cpu: 200m
       memory: 256Mi
+  
+  # Affinity and anti-affinity rules
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
@@ -31,13 +45,32 @@ traefik:
                   values:
                     - traefik
             topologyKey: kubernetes.io/hostname
-  # Enable autoscaling for the ingress controller
+  
+  # Autoscaling configuration
   autoscaling: 
-    enabled: true
+    enabled: false  # Disabled by default for Raspberry Pi
     minReplicas: 1
-    maxReplicas: 3
+    maxReplicas: 2
     cpuTargetUtilization: 80
     memoryTargetUtilization: 80
-  # Pod scheduling settings
+  
+  # Tolerations - useful for dedicated nodes
   tolerations: []
-  nodeSelector: {}
+  
+  # Node selector - useful for ARM architecture
+  nodeSelector: 
+    kubernetes.io/arch: arm64  # For Raspberry Pi 4
+  
+  # Persistent storage for Let's Encrypt certificates
+  persistence:
+    enabled: false  # Disable for now to get basic functionality working
+    size: 128Mi
+    storageClass: ""  # Use default storageClass
+  
+  # Additional configuration
+  additionalArguments:
+    - "--log.level=INFO"
+    - "--api.insecure=true"  # Only for development
+    - "--metrics.prometheus=true"
+    - "--providers.kubernetesingress.ingressclass=traefik"
+    - "--entrypoints.websecure.http.tls=true"

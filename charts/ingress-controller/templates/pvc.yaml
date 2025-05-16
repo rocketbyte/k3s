@@ -1,0 +1,18 @@
+{{- if .Values.traefik.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: traefik-acme
+  namespace: {{ .Values.traefik.namespace }}
+  labels:
+    app: traefik
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.traefik.persistence.storageClass }}
+  storageClassName: {{ .Values.traefik.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.traefik.persistence.size }}
+{{- end }}

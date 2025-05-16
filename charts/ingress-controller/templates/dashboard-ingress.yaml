@@ -1,0 +1,32 @@
+{{- if .Values.traefik.dashboard.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik-dashboard
+  namespace: {{ .Values.traefik.namespace }}
+  labels:
+    app: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    {{- if .Values.traefik.ssl.enabled }}
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    {{- end }}
+spec:
+  rules:
+  - host: traefik.cluster.local  # Change this to your desired domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: traefik-ingress-service
+            port:
+              number: 9000
+  {{- if .Values.traefik.ssl.enabled }}
+  tls:
+  - hosts:
+    - traefik.cluster.local  # Change this to your desired domain
+  {{- end }}
+{{- end }}

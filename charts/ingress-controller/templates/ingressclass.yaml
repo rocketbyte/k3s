@@ -2,8 +2,10 @@ apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
   name: traefik
+  namespace: {{ .Values.traefik.namespace }}
   labels:
     app: traefik
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
   annotations:
     ingressclass.kubernetes.io/is-default-class: "true"
 spec:

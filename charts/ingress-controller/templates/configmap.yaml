@@ -17,34 +17,29 @@ data:
     [entryPoints]
       [entryPoints.web]
         address = ":80"
-        {{- if .Values.traefik.ssl.enabled }}
+        {{- if and .Values.traefik.ssl.enabled .Values.traefik.ssl.redirect }}
         [entryPoints.web.http.redirections.entryPoint]
           to = "websecure"
           scheme = "https"
         {{- end }}
-      
+
       [entryPoints.websecure]
         address = ":443"
-      
+        {{- if .Values.traefik.ssl.enabled }}
+        [entryPoints.websecure.http.tls]
+          certResolver = "default"
+        {{- end }}
+
       [entryPoints.metrics]
         address = ":8082"
-        
+
       [entryPoints.dashboard]
-        address = ":8080"
+        address = ":9000"
 
     [api]
-      {{- if .Values.traefik.dashboard.enabled }}
       dashboard = true
-      entryPoint = "dashboard"
-      {{- if .Values.traefik.dashboard.secure }}
-      insecure = false
-      {{- else }}
-      insecure = true
-      {{- end }}
-      {{- else }}
-      dashboard = false
-      insecure = false
-      {{- end }}
+      insecure = {{ not .Values.traefik.dashboard.secure }}
+      # Dashboard access is available at /dashboard/ with trailing slash
 
     [metrics]
       [metrics.prometheus]
@@ -53,3 +48,22 @@ data:
     [providers]
       [providers.kubernetesIngress]
         ingressClass = "traefik"
+      [providers.kubernetesCRD]
+        # Use both old and new API groups for compatibility
+        # in order to support all Traefik CRD versions
+        allowCrossNamespace = true 
+        allowExternalNameServices = true
+        
+    {{- if and .Values.traefik.ssl.enabled .Values.traefik.persistence.enabled }}
+    [certificatesResolvers.default.acme]
+      email = "admin@example.com"
+      storage = "/data/acme.json"
+      [certificatesResolvers.default.acme.tlsChallenge]
+    {{- end }}
+
+    [accessLog]
+      format = "json"
+      
+    # Enable native Traefik CRDs
+    [experimental]
+      kubernetesGateway = true

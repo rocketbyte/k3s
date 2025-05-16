@@ -19,6 +19,8 @@ rules:
       - services
       - endpoints
       - secrets
+      - pods
+      - configmaps
     verbs:
       - get
       - list
@@ -45,6 +47,37 @@ rules:
     resources:
       - nodes
     verbs:
+      - list
+      - watch
+  - apiGroups:
+      - traefik.containo.us
+      - traefik.io
+    resources:
+      - middlewares
+      - middlewaretcps
+      - ingressroutes
+      - ingressroutetcps
+      - ingressrouteudps
+      - tlsoptions
+      - tlsstores
+      - serverstransports
+      - traefikservices
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - gatewayclasses
+      - gateways
+      - httproutes
+      - referencegrants
+      - tcproutes
+      - tlsroutes
+      - udproutes
+    verbs:
+      - get
       - list
       - watch
 ---

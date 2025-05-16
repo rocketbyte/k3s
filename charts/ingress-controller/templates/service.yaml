@@ -22,7 +22,7 @@ spec:
     targetPort: websecure
     protocol: TCP
   {{- if .Values.traefik.dashboard.enabled }}
-  - port: 8080
+  - port: 9000
     name: dashboard
     targetPort: dashboard
     protocol: TCP

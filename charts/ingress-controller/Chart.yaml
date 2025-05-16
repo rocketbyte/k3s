@@ -1,6 +1,12 @@
 apiVersion: v2
 name: ingress-controller
-description: Traefik ingress controller for k3s
+description: Traefik ingress controller for k3s (optimized for Raspberry Pi)
 type: application
 version: 0.1.0
 appVersion: "2.10.4"
+annotations:
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/prerelease: "false"
+maintainers:
+  - name: RocketByte
+    email: admin@rocketbyte.com
