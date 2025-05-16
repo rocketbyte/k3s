@@ -100,7 +100,7 @@ module "avexa_react" {
   resource_limits          = var.avexa_resource_limits
   depends_on               = [
     module.namespaces,
-    var.deploy_ingress ? module.ingress_controller : null,
-    var.deploy_mongodb ? module.mongodb : null
+    module.ingress_controller,
+    module.mongodb
   ]
 }
