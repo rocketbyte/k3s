@@ -1,7 +1,7 @@
 app:
   name: avexa-react
   image:
-    repository: registry.example.com/rocketbyte/avexa-react
+    repository: docker.io/starlingilcruz/avexa
     tag: latest
     pullPolicy: Always
   port: 80

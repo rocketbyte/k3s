@@ -1,31 +1,87 @@
 locals {
-  mongodb_connection_parts = var.mongodb_connection_string != "" ? split("@", var.mongodb_connection_string) : ["", ""]
-  mongodb_host_port = length(local.mongodb_connection_parts) > 1 ? split("/", local.mongodb_connection_parts[1])[0] : ""
-  mongodb_host = local.mongodb_host_port != "" ? split(":", local.mongodb_host_port)[0] : ""
-  
   app_values = {
-    replicaCount = var.replica_count
-    
-    image = {
-      repository = var.image_repository
-      tag        = var.image_tag
+    app = {
+      name = "avexa-react"
+      image = {
+        repository = var.image_repository
+        tag        = var.image_tag
+        pullPolicy = "Always"
+      }
+      port = 80
     }
     
-    resources = {
-      limits = {
-        cpu    = var.resource_limits.cpu
-        memory = var.resource_limits.memory
+    deployment = {
+      replicas = var.replica_count
+      resources = {
+        requests = {
+          cpu    = "50m"  # Reduced for Raspberry Pi
+          memory = "100Mi"
+        }
+        limits = {
+          cpu    = var.resource_limits.cpu
+          memory = var.resource_limits.memory
+        }
       }
+      nodeSelector = var.node_selector
     }
     
     ingress = {
       enabled = true
-      host    = var.ingress_host
+      className = "traefik"
+      hosts = [
+        {
+          host = var.ingress_host
+          paths = [
+            {
+              path = "/"
+              pathType = "Prefix"
+            }
+          ]
+        }
+      ]
+      tls = [
+        {
+          secretName = "avexa-tls"
+          hosts = [var.ingress_host]
+        }
+      ]
     }
     
-    mongodb = {
-      connectionString = var.mongodb_connection_string
+    # Simplified security context for maximum Raspberry Pi compatibility
+    securityContext = {
+      pod = {}  # Empty means use default
+      container = {}  # Empty means use default
     }
+    
+    # Simplified health checks for fast startup
+    healthcheck = {
+      livenessProbe = {
+        enabled = true
+        initialDelaySeconds = 10
+        periodSeconds = 10
+        timeoutSeconds = 5
+        failureThreshold = 6
+        successThreshold = 1
+        path = "/"
+      }
+      readinessProbe = {
+        enabled = true
+        initialDelaySeconds = 5
+        periodSeconds = 10
+        timeoutSeconds = 5
+        failureThreshold = 6
+        successThreshold = 1
+        path = "/"
+      }
+    }
+    
+    # React-specific environment variables
+    env = [
+      {
+        name = "NODE_ENV"
+        value = "production"
+      }
+    ]
   }
 }
 
@@ -37,9 +93,4 @@ resource "helm_release" "avexa_react" {
   values = [
     yamlencode(local.app_values)
   ]
-  
-  set_sensitive {
-    name  = "mongodb.connectionString"
-    value = var.mongodb_connection_string
-  }
 }

@@ -86,12 +86,7 @@ variable "mongodb_resource_limits" {
   }
 }
 
-variable "external_mongodb_connection" {
-  type        = string
-  description = "External MongoDB connection string if not deploying MongoDB"
-  default     = ""
-  sensitive   = true
-}
+# No external MongoDB connection needed for a React application
 
 # Ingress Controller configuration
 variable "ingress_namespace" {
@@ -309,4 +304,10 @@ variable "avexa_resource_limits" {
     cpu    = "200m"
     memory = "256Mi"
   }
+}
+
+variable "avexa_node_selector" {
+  type        = map(string)
+  description = "Node selector for Avexa React pods"
+  default     = {}
 }

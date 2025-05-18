@@ -9,7 +9,7 @@ app:
   
   # -- Image configuration
   image:
-    repository: registry.example.com/rocketbyte/avexa-react
+    repository: docker.io/starlingilcruz/avexa
     tag: latest
     pullPolicy: Always
   

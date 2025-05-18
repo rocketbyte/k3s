@@ -22,11 +22,10 @@ variable "image_tag" {
   default     = "latest"
 }
 
-variable "mongodb_connection_string" {
-  type        = string
-  description = "MongoDB connection string"
-  default     = ""
-  sensitive   = true
+variable "node_selector" {
+  type        = map(string)
+  description = "Node selector for Avexa React pods"
+  default     = {}
 }
 
 variable "ingress_host" {

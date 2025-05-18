@@ -7,7 +7,7 @@ variable "kube_config_path" {
 variable "kube_context" {
   type        = string
   description = "Kubernetes context to use for the Raspberry Pi k3s cluster"
-  default     = ""  # Set this to your Raspberry Pi k3s cluster context
+  default     = "" # Set this to your Raspberry Pi k3s cluster context
 }
 
 variable "use_kube_exec" {

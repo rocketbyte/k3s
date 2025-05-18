@@ -131,12 +131,11 @@ module "avexa_react" {
   replica_count            = var.avexa_replicas
   image_repository         = var.avexa_image_repository
   image_tag                = var.avexa_image_tag
-  mongodb_connection_string = var.deploy_mongodb ? module.mongodb[0].connection_string : var.external_mongodb_connection
   ingress_host             = var.avexa_ingress_host
   resource_limits          = var.avexa_resource_limits
+  node_selector            = var.avexa_node_selector
   depends_on               = [
     module.namespaces,
-    module.ingress_controller,
-    module.mongodb
+    module.ingress_controller
   ]
 }
