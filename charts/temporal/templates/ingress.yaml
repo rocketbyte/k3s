@@ -1,0 +1,68 @@
+{{- if .Values.ingress.enabled }}
+{{- if .Values.ingress.ui.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "temporal.fullname" . }}-ui
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "temporal.ui.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.ui.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.ui.host }}
+    secretName: {{ .Values.ingress.ui.tls.secretName }}
+  {{- end }}
+  rules:
+  - host: {{ .Values.ingress.ui.host }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.ui.path }}
+        pathType: {{ .Values.ingress.ui.pathType }}
+        backend:
+          service:
+            name: {{ include "temporal.fullname" . }}-ui
+            port:
+              number: {{ .Values.temporalUI.service.port }}
+{{- end }}
+{{- if .Values.ingress.grpc.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "temporal.fullname" . }}-grpc
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "temporal.server.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.grpc.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.grpc.host }}
+    secretName: {{ .Values.ingress.grpc.tls.secretName }}
+  {{- end }}
+  rules:
+  - host: {{ .Values.ingress.grpc.host }}
+    http:
+      paths:
+      - path: {{ .Values.ingress.grpc.path }}
+        pathType: {{ .Values.ingress.grpc.pathType }}
+        backend:
+          service:
+            name: {{ include "temporal.fullname" . }}-frontend
+            port:
+              number: {{ .Values.temporal.services.frontend.port }}
+{{- end }}
+{{- end }}

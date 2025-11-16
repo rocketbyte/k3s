@@ -1,0 +1,14 @@
+apiVersion: v2
+name: temporal
+description: A Helm chart for deploying Temporal.io with PostgreSQL to Kubernetes
+type: application
+version: 0.1.0
+appVersion: "1.25.0"
+keywords:
+  - temporal
+  - workflow
+  - orchestration
+  - postgresql
+  - database
+maintainers:
+  - name: RocketByte Team

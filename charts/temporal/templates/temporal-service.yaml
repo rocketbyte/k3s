@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "temporal.fullname" . }}-frontend
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "temporal.server.labels" . | nindent 4 }}
+    app.kubernetes.io/service: frontend
+spec:
+  type: ClusterIP
+  ports:
+  - name: grpc
+    port: {{ .Values.temporal.services.frontend.port }}
+    targetPort: frontend
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "temporal.name" . }}-server
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "temporal.fullname" . }}-headless
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "temporal.server.labels" . | nindent 4 }}
+    app.kubernetes.io/service: headless
+spec:
+  clusterIP: None
+  ports:
+  - name: frontend
+    port: {{ .Values.temporal.services.frontend.port }}
+    targetPort: frontend
+    protocol: TCP
+  - name: history
+    port: {{ .Values.temporal.services.history.port }}
+    targetPort: history
+    protocol: TCP
+  - name: matching
+    port: {{ .Values.temporal.services.matching.port }}
+    targetPort: matching
+    protocol: TCP
+  - name: worker
+    port: {{ .Values.temporal.services.worker.port }}
+    targetPort: worker
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "temporal.name" . }}-server
+    app.kubernetes.io/instance: {{ .Release.Name }}

@@ -1,0 +1,76 @@
+{{- if .Values.temporalUI.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "temporal.fullname" . }}-ui
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "temporal.ui.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.temporalUI.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "temporal.name" . }}-ui
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "temporal.name" . }}-ui
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: ui
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "temporal.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext.pod | nindent 8 }}
+      containers:
+      - name: temporal-ui
+        image: "{{ .Values.temporalUI.image.repository }}:{{ .Values.temporalUI.image.tag }}"
+        imagePullPolicy: {{ .Values.temporalUI.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.temporalUI.service.port }}
+          protocol: TCP
+        env:
+        - name: TEMPORAL_ADDRESS
+          value: "{{ include "temporal.fullname" . }}-frontend:{{ .Values.temporal.services.frontend.port }}"
+        - name: TEMPORAL_GRPC_ENDPOINT
+          value: "{{ include "temporal.fullname" . }}-frontend:{{ .Values.temporal.services.frontend.port }}"
+        - name: TEMPORAL_CORS_ORIGINS
+          value: "*"
+        - name: TEMPORAL_UI_PORT
+          value: "{{ .Values.temporalUI.service.port }}"
+        - name: TEMPORAL_CONFIG_PATH
+          value: ""
+        - name: TEMPORAL_PERMIT_WRITE_API
+          value: "true"
+        resources:
+          {{- toYaml .Values.temporalUI.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

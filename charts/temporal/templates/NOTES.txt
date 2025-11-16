@@ -1,0 +1,44 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your Temporal deployment is being provisioned in the '{{ .Values.namespace.name }}' namespace.
+
+To check the status of your deployment:
+
+  kubectl get pods -n {{ .Values.namespace.name }}
+
+{{- if .Values.temporalUI.enabled }}
+
+To access the Temporal Web UI:
+
+{{- if .Values.ingress.enabled }}
+  UI URL: https://{{ .Values.ingress.ui.host }}
+{{- else }}
+  kubectl port-forward -n {{ .Values.namespace.name }} svc/{{ include "temporal.fullname" . }}-ui {{ .Values.temporalUI.service.port }}:{{ .Values.temporalUI.service.port }}
+
+  Then visit: http://localhost:{{ .Values.temporalUI.service.port }}
+{{- end }}
+{{- end }}
+
+To connect to Temporal gRPC endpoint:
+
+{{- if .Values.ingress.grpc.enabled }}
+  gRPC URL: {{ .Values.ingress.grpc.host }}:{{ .Values.temporal.services.frontend.port }}
+{{- else }}
+  kubectl port-forward -n {{ .Values.namespace.name }} svc/{{ include "temporal.fullname" . }}-frontend {{ .Values.temporal.services.frontend.port }}:{{ .Values.temporal.services.frontend.port }}
+
+  Then connect to: localhost:{{ .Values.temporal.services.frontend.port }}
+{{- end }}
+
+Database Information:
+  - PostgreSQL is deployed as part of this chart
+  - Database: {{ .Values.postgresql.database.name }}
+  - User: {{ .Values.postgresql.database.user }}
+
+Important Notes:
+  - For production use, please update the PostgreSQL password in values.yaml
+  - Consider using external secrets management for sensitive data
+  - Adjust resource limits based on your workload requirements
+
+For more information:
+  - Temporal Documentation: https://docs.temporal.io/
+  - GitHub: https://github.com/temporalio/temporal

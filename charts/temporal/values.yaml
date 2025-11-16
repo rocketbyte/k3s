@@ -1,0 +1,210 @@
+# Default values for temporal
+# This is a YAML-formatted file.
+
+## Namespace Configuration
+##
+namespace:
+  name: rocket
+  create: false
+
+## PostgreSQL Configuration
+##
+postgresql:
+  # -- Enable PostgreSQL deployment
+  enabled: true
+
+  # -- Image configuration
+  image:
+    repository: postgres
+    tag: "14-alpine"
+    pullPolicy: IfNotPresent
+
+  # -- Database configuration
+  database:
+    name: temporal
+    user: temporal
+    password: temporal123
+    # For production, use a secret instead
+
+  # -- Storage configuration
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 10Gi
+    accessMode: ReadWriteOnce
+
+  # -- Resource configuration
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  # -- Service configuration
+  service:
+    type: ClusterIP
+    port: 5432
+
+## Temporal Server Configuration
+##
+temporal:
+  # -- Temporal server image
+  image:
+    repository: temporalio/auto-setup
+    tag: "1.25.0"
+    pullPolicy: IfNotPresent
+
+  # -- Number of replicas
+  replicas: 1
+
+  # -- Temporal service configuration
+  services:
+    # Frontend service (gRPC API)
+    frontend:
+      port: 7233
+      membershipPort: 6933
+
+    # History service
+    history:
+      port: 7234
+      membershipPort: 6934
+
+    # Matching service
+    matching:
+      port: 7235
+      membershipPort: 6935
+
+    # Worker service
+    worker:
+      port: 7239
+      membershipPort: 6939
+
+  # -- Temporal configuration
+  config:
+    # Default namespace
+    defaultNamespace: default
+
+    # Visibility store
+    visibilityStore: postgres
+
+    # Number of history shards
+    numHistoryShards: 4
+
+  # -- Resource configuration
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  # -- Environment variables
+  env:
+    - name: DB
+      value: postgres12
+    - name: DB_PORT
+      value: "5432"
+    - name: POSTGRES_SEEDS
+      value: temporal-postgresql
+    - name: DYNAMIC_CONFIG_FILE_PATH
+      value: config/dynamicconfig/development.yaml
+
+## Temporal Web UI Configuration
+##
+temporalUI:
+  # -- Enable Temporal Web UI
+  enabled: true
+
+  # -- Image configuration
+  image:
+    repository: temporalio/ui
+    tag: "latest"
+    pullPolicy: Always
+
+  # -- Number of replicas
+  replicas: 1
+
+  # -- Service configuration
+  service:
+    type: ClusterIP
+    port: 8080
+
+  # -- Resource configuration
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+## Service Account Configuration
+##
+serviceAccount:
+  create: true
+  name: ""
+
+## Ingress Configuration
+##
+ingress:
+  # -- Enable ingress
+  enabled: true
+
+  # -- Ingress class name (nginx)
+  className: nginx
+
+  # -- Annotations
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+  # -- Temporal UI ingress
+  ui:
+    enabled: true
+    host: temporal-rocketbyte.duckdns.org
+    path: /
+    pathType: Prefix
+    tls:
+      enabled: false
+      secretName: temporal-ui-tls
+
+  # -- Temporal gRPC ingress
+  grpc:
+    enabled: true
+    host: temporal-rocketbyte.duckdns.org
+    path: /api
+    pathType: Prefix
+    tls:
+      enabled: false
+      secretName: temporal-grpc-tls
+
+## Security Configuration
+##
+securityContext:
+  # -- Pod security context
+  pod:
+    runAsNonRoot: false
+    fsGroup: 1000
+
+  # -- Container security context
+  container:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+## Additional Configuration
+##
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Node selector
+nodeSelector: {}
+
+# -- Tolerations
+tolerations: []
+
+# -- Affinity
+affinity: {}
