@@ -37,8 +37,6 @@ spec:
         env:
         - name: TEMPORAL_ADDRESS
           value: "{{ include "temporal.fullname" . }}-frontend:{{ .Values.temporal.services.frontend.port }}"
-        - name: TEMPORAL_GRPC_ENDPOINT
-          value: "{{ include "temporal.fullname" . }}-frontend:{{ .Values.temporal.services.frontend.port }}"
         - name: TEMPORAL_CORS_ORIGINS
           value: "*"
         - name: TEMPORAL_UI_PORT
@@ -47,6 +45,8 @@ spec:
           value: ""
         - name: TEMPORAL_PERMIT_WRITE_API
           value: "true"
+        - name: TEMPORAL_CODEC_ENDPOINT
+          value: ""
         resources:
           {{- toYaml .Values.temporalUI.resources | nindent 10 }}
         livenessProbe:
